@@ -9,18 +9,18 @@ type LogLevel uint16
 
 // FlgAll a
 const (
-	FlgFatal  = 1 << 0
-	FlgError  = 1 << 1
-	FlgWarn   = 1 << 2
-	FlgNotice = 1 << 3
-	FlgInfo   = 1 << 4
-	FlgDebug  = 1 << 5
+	FlgFatal  LogLevel = 1 << 0
+	FlgError  LogLevel = 1 << 1
+	FlgWarn   LogLevel = 1 << 2
+	FlgNotice LogLevel = 1 << 3
+	FlgInfo   LogLevel = 1 << 4
+	FlgDebug  LogLevel = 1 << 5
 )
 
 // FlgAll a
 const (
-	FlgsetAll    = 0xffff
-	FlgsetCommon = FlgFatal | FlgError | FlgWarn | FlgNotice
+	FlgsetAll    LogLevel = 0xffff
+	FlgsetCommon LogLevel = FlgFatal | FlgError | FlgWarn | FlgNotice
 )
 
 // LabelingLogger a
