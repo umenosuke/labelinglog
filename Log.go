@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-// Log a
+// Log outputs messages at the specified log level.
 func (thisLabelingLogger *LabelingLogger) Log(targetLevelFlgs LogLevel, msg string) {
 	if !thisLabelingLogger.isActive(targetLevelFlgs) {
 		return
@@ -43,7 +43,7 @@ func (thisLabelingLogger *LabelingLogger) Log(targetLevelFlgs LogLevel, msg stri
 	}
 }
 
-// LogMultiLines a
+// LogMultiLines outputs multi-line messages at the specified log level.
 func (thisLabelingLogger *LabelingLogger) LogMultiLines(targetLevelFlgs LogLevel, msg string) {
 	if !thisLabelingLogger.isActive(targetLevelFlgs) {
 		return

@@ -6,6 +6,7 @@ import (
 	"sync"
 )
 
+// Wrapper for log output.
 type tLogger struct {
 	sync.Mutex
 	isEnable bool
