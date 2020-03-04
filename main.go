@@ -4,33 +4,33 @@ import (
 	"io"
 )
 
-// LogLevel a
+// LogLevel is used to specify output and configuration targets.
 type LogLevel uint16
 
-// FlgAll a
+// Flg** is a log level bit flag.
 const (
-	FlgFatal  = 1 << 0
-	FlgError  = 1 << 1
-	FlgWarn   = 1 << 2
-	FlgNotice = 1 << 3
-	FlgInfo   = 1 << 4
-	FlgDebug  = 1 << 5
+	FlgFatal  LogLevel = 1 << 0
+	FlgError  LogLevel = 1 << 1
+	FlgWarn   LogLevel = 1 << 2
+	FlgNotice LogLevel = 1 << 3
+	FlgInfo   LogLevel = 1 << 4
+	FlgDebug  LogLevel = 1 << 5
 )
 
-// FlgAll a
+// Flgset** is a preset log level bit flag set.
 const (
-	FlgsetAll    = 0xffff
-	FlgsetCommon = FlgFatal | FlgError | FlgWarn | FlgNotice
+	FlgsetAll    LogLevel = 0xffff
+	FlgsetCommon LogLevel = FlgFatal | FlgError | FlgWarn | FlgNotice
 )
 
-// LabelingLogger a
+// LabelingLogger is the main
 type LabelingLogger struct {
 	loggers         []*tLogger
 	enableFileame   bool
 	enableTimestamp bool
 }
 
-// New a
+// New returns an initialized LabelingLogger
 func New(prefix string, writer io.Writer) *LabelingLogger {
 	loggers := make([]*tLogger, 0)
 	loggers = append(loggers, &tLogger{
