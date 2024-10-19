@@ -8,7 +8,7 @@ import (
 
 // Wrapper for log output.
 type tLogger struct {
-	sync.Mutex
+	sync.RWMutex
 	isEnable bool
 	writer   io.Writer
 	prefix   string
@@ -16,8 +16,8 @@ type tLogger struct {
 }
 
 func (thisLogger *tLogger) log(timestamp string, fileName string, msg string) {
-	thisLogger.Lock()
-	defer thisLogger.Unlock()
+	thisLogger.RLock()
+	defer thisLogger.RUnlock()
 
 	_, err := fmt.Fprintln(thisLogger.writer, timestamp+thisLogger.prefix+" "+fileName+": "+msg)
 	if err != nil {
