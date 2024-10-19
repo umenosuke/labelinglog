@@ -15,12 +15,12 @@ type tLogger struct {
 	flg      LogLevel
 }
 
-func (thisLogger *tLogger) logSub(timestamp string, fileName string, msg string) {
+func (thisLogger *tLogger) log(timestamp string, fileName string, msg string) {
 	thisLogger.Lock()
 	defer thisLogger.Unlock()
 
 	_, err := fmt.Fprintln(thisLogger.writer, timestamp+thisLogger.prefix+" "+fileName+": "+msg)
 	if err != nil {
-		selfLogger.log(timestamp, fileName, err.Error())
+		internalLogger.log(timestamp, fileName, err.Error())
 	}
 }

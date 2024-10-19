@@ -3,10 +3,38 @@ package labelinglog
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"runtime"
 	"strings"
 	"time"
 )
+
+// LabelingLogger is the main
+type LabelingLogger struct {
+	loggers         []*tLogger
+	enableFileame   bool
+	enableTimestamp bool
+}
+
+// New returns an initialized LabelingLogger
+func New(prefix string, writer io.Writer) *LabelingLogger {
+	loggers := make([]*tLogger, 0)
+
+	for flg, label := range logLevelLabel {
+		loggers = append(loggers, &tLogger{
+			isEnable: true,
+			writer:   writer,
+			prefix:   "[" + prefix + "][" + label + "] ",
+			flg:      flg,
+		})
+	}
+
+	return &LabelingLogger{
+		loggers:         loggers,
+		enableFileame:   true,
+		enableTimestamp: true,
+	}
+}
 
 // Log outputs messages at the specified log level.
 func (thisLabelingLogger *LabelingLogger) Log(targetLevelFlgs LogLevel, msg string) {
@@ -37,7 +65,7 @@ func (thisLabelingLogger *LabelingLogger) Log(targetLevelFlgs LogLevel, msg stri
 	for _, logger := range thisLabelingLogger.loggers {
 		if logger.isEnable {
 			if targetLevelFlgs&logger.flg != 0 {
-				logger.logSub(timestamp, fileName, msg)
+				logger.log(timestamp, fileName, msg)
 			}
 		}
 	}
@@ -74,14 +102,14 @@ func (thisLabelingLogger *LabelingLogger) LogMultiLines(targetLevelFlgs LogLevel
 		for _, logger := range thisLabelingLogger.loggers {
 			if logger.isEnable {
 				if targetLevelFlgs&logger.flg != 0 {
-					logger.logSub(timestamp, fileName, scanner.Text())
+					logger.log(timestamp, fileName, scanner.Text())
 				}
 			}
 		}
 	}
 
 	if err := scanner.Err(); err != nil {
-		selfLogger.log(timestamp, fileName, err.Error())
+		internalLogger.log(timestamp, fileName, err.Error())
 	}
 }
 
@@ -94,4 +122,40 @@ func (thisLabelingLogger *LabelingLogger) isActive(targetLevelFlgs LogLevel) boo
 		}
 	}
 	return false
+}
+
+// SetEnableLevel enables only the output of the specified log level.
+func (thisLabelingLogger *LabelingLogger) SetEnableLevel(targetLevelFlgs LogLevel) {
+	for _, logger := range thisLabelingLogger.loggers {
+		logger.isEnable = targetLevelFlgs&logger.flg != 0
+	}
+}
+
+// SetIoWriter changes the output destination of the specified log level.
+func (thisLabelingLogger *LabelingLogger) SetIoWriter(targetLevelFlgs LogLevel, writer io.Writer) {
+	for _, logger := range thisLabelingLogger.loggers {
+		logger.Lock()
+		logger.writer = writer
+		logger.Unlock()
+	}
+}
+
+// DisableFilename disables the output of the file name of the log caller.
+func (thisLabelingLogger *LabelingLogger) DisableFilename() {
+	thisLabelingLogger.enableFileame = false
+}
+
+// EnableFilename enables output of the file name of the caller of the log.
+func (thisLabelingLogger *LabelingLogger) EnableFilename() {
+	thisLabelingLogger.enableFileame = true
+}
+
+// DisableTimestamp disables log timestamp output.
+func (thisLabelingLogger *LabelingLogger) DisableTimestamp() {
+	thisLabelingLogger.enableTimestamp = false
+}
+
+// EnableTimestamp enables log timestamp output.
+func (thisLabelingLogger *LabelingLogger) EnableTimestamp() {
+	thisLabelingLogger.enableTimestamp = true
 }
