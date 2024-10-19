@@ -13,18 +13,30 @@ type tLogger struct {
 	prefix string
 }
 
-func (thisLogger *tLogger) log(timestamp string, fileName string, msg string) {
-	thisLogger.RLock()
-	defer thisLogger.RUnlock()
+func (l *tLogger) log(timestamp string, fileName string, msg string) {
+	l.RLock()
+	defer l.RUnlock()
 
-	_, err := fmt.Fprintln(thisLogger.writer, timestamp+thisLogger.prefix+" "+fileName+": "+msg)
+	_, err := fmt.Fprintln(l.writer, timestamp+l.prefix+" "+fileName+": "+msg)
 	if err != nil {
 		internalLog(timestamp, fileName, err.Error())
 	}
 }
 
-func (thisLogger *tLogger) setIoWriter(writer io.Writer) {
-	thisLogger.Lock()
-	defer thisLogger.Unlock()
-	thisLogger.writer = writer
+func (l *tLogger) logMultiLines(timestamp string, fileName string, msgLines []string) {
+	l.Lock()
+	defer l.Unlock()
+
+	for _, msg := range msgLines {
+		_, err := fmt.Fprintln(l.writer, timestamp+l.prefix+" "+fileName+": "+msg)
+		if err != nil {
+			internalLog(timestamp, fileName, err.Error())
+		}
+	}
+}
+
+func (l *tLogger) setIoWriter(writer io.Writer) {
+	l.Lock()
+	defer l.Unlock()
+	l.writer = writer
 }

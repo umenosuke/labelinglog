@@ -108,15 +108,29 @@ func (l *LabelingLogger) LogMultiLines(targetLevelFlgs LogLevel, msg string) {
 		fileName = ""
 	}
 
-	scanner := bufio.NewScanner(strings.NewReader(msg))
-	for scanner.Scan() {
-		for _, flg := range tartgetLogLevels {
-			l.loggers[flg].log(timestamp, fileName, msg)
+	msgLines := make([]string, 0)
+	reader := bufio.NewReader(strings.NewReader(msg))
+	for {
+		line, err := reader.ReadString('\n')
+
+		if err != nil && err != io.EOF {
+			internalLog(timestamp, fileName, err.Error())
+			break
 		}
+
+		if err == io.EOF {
+			if len(line) != 0 {
+				msgLines = append(msgLines, line)
+			}
+
+			break
+		}
+
+		msgLines = append(msgLines, line)
 	}
 
-	if err := scanner.Err(); err != nil {
-		internalLog(timestamp, fileName, err.Error())
+	for _, flg := range tartgetLogLevels {
+		l.loggers[flg].logMultiLines(timestamp, fileName, msgLines)
 	}
 }
 
