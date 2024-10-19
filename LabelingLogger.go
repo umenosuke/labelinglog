@@ -120,12 +120,16 @@ func (l *LabelingLogger) LogMultiLines(targetLevelFlgs LogLevel, msg string) {
 
 		if err == io.EOF {
 			if len(line) != 0 {
+				line, _ = strings.CutSuffix(line, "\n")
+				line, _ = strings.CutSuffix(line, "\r")
 				msgLines = append(msgLines, line)
 			}
 
 			break
 		}
 
+		line, _ = strings.CutSuffix(line, "\n")
+		line, _ = strings.CutSuffix(line, "\r")
 		msgLines = append(msgLines, line)
 	}
 
