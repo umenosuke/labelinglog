@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"io"
+	"path/filepath"
 	"runtime"
 	"strings"
 	"time"
@@ -15,6 +16,8 @@ type LabelingLogger struct {
 	enableLoggerLevels []LogLevel
 	enableFileame      bool
 	enableTimestamp    bool
+
+	basePath string
 }
 
 // New returns an initialized LabelingLogger
@@ -31,11 +34,31 @@ func New(prefix string, writer io.Writer) *LabelingLogger {
 		enableLogLevels = append(enableLogLevels, flg)
 	}
 
+	basePath := "/"
+	{
+		_, file, _, ok := runtime.Caller(0)
+		if ok {
+			for {
+				parent := filepath.Dir(file)
+				if parent == file {
+					break
+				}
+				if filepath.Base(file) == "vendor" {
+					basePath = parent
+					break
+				}
+				file = parent
+			}
+		}
+	}
+
 	return &LabelingLogger{
 		loggers:            loggers,
 		enableLoggerLevels: enableLogLevels,
 		enableFileame:      true,
 		enableTimestamp:    true,
+
+		basePath: basePath,
 	}
 }
 
@@ -58,18 +81,7 @@ func (l *LabelingLogger) Log(targetLevelFlgs LogLevel, msg string) {
 		timestamp = ""
 	}
 
-	var fileName string
-	if l.enableFileame {
-		_, file, line, ok := runtime.Caller(1)
-		if ok {
-			s := strings.Split(file, "/")
-			fileName = fmt.Sprintf("%s line %3d", s[len(s)-1], line) + " "
-		} else {
-			fileName = "unknown "
-		}
-	} else {
-		fileName = ""
-	}
+	fileName := l.getFileName()
 
 	for _, flg := range tartgetLogLevels {
 		l.loggers[flg].log(timestamp, fileName, msg)
@@ -95,18 +107,7 @@ func (l *LabelingLogger) LogMultiLines(targetLevelFlgs LogLevel, msg string) {
 		timestamp = ""
 	}
 
-	var fileName string
-	if l.enableFileame {
-		_, file, line, ok := runtime.Caller(1)
-		if ok {
-			s := strings.Split(file, "/")
-			fileName = fmt.Sprintf("%s line %3d", s[len(s)-1], line) + " "
-		} else {
-			fileName = "unknown "
-		}
-	} else {
-		fileName = ""
-	}
+	fileName := l.getFileName()
 
 	msgLines := make([]string, 0)
 	reader := bufio.NewReader(strings.NewReader(msg))
@@ -135,6 +136,24 @@ func (l *LabelingLogger) LogMultiLines(targetLevelFlgs LogLevel, msg string) {
 
 	for _, flg := range tartgetLogLevels {
 		l.loggers[flg].logMultiLines(timestamp, fileName, msgLines)
+	}
+}
+
+func (l *LabelingLogger) getFileName() string {
+	if l.enableFileame {
+		_, file, line, ok := runtime.Caller(2)
+		if ok {
+			relPath, err := filepath.Rel(l.basePath, file)
+			if err != nil {
+				return "(unknown) "
+			} else {
+				return fmt.Sprintf("%s:%d", relPath, line) + " "
+			}
+		} else {
+			return "(unknown) "
+		}
+	} else {
+		return ""
 	}
 }
 
